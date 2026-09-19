@@ -42,12 +42,12 @@ export const surahType = defineType({
       initialValue: 'makki',
       options: {
         list: [
-          { title: 'Meccan', value: 'makki' },
-          { title: 'Medinan', value: 'madani' },
+          { title: 'Meccan (Makki)', value: 'makki' },
+          { title: 'Medinan (Madani)', value: 'madani' },
         ],
         layout: 'radio',
       },
-      validation: (rule) => rule.warning('Select revelation place'),
+      validation: (rule) => rule.warning('Select revelation period'),
     }),
     defineField({
       name: 'totalAyahs',

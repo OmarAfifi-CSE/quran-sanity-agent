@@ -31,9 +31,9 @@ export const interpretiveClaimType = defineType({
       initialValue: 'consensus',
       options: {
         list: [
-          { title: 'Consensus (Ijma)', value: 'consensus' },
-          { title: 'Complementary Diversity', value: 'complementary' },
-          { title: 'Contradictory Divergence', value: 'contradictory' },
+          { title: 'Consensus (Ijma / Unanimous Agreement)', value: 'consensus' },
+          { title: 'Complementary Diversity (Ikhtilaf Tanawwu)', value: 'complementary' },
+          { title: 'Contradictory Divergence (Ikhtilaf Tadadd)', value: 'contradictory' },
         ],
         layout: 'radio',
       },
@@ -63,6 +63,7 @@ export const interpretiveClaimType = defineType({
       description: 'Concise, rigorous English synthesis of the scholarâ€™s deductive conclusion for AI reasoning',
       type: 'text',
       rows: 4,
+      placeholder: 'e.g. Ibn Kathir argues that the Basmalah is an independent verse...',
       validation: (rule) =>
         rule.warning('English explanation of the scholarly position is recommended'),
     }),
@@ -72,6 +73,7 @@ export const interpretiveClaimType = defineType({
       description: 'Verbatim excerpt from the scholarâ€™s manuscript serving as untampered evidentiary ground truth',
       type: 'text',
       rows: 4,
+      placeholder: 'Ù…Ø«Ø§Ù„: Ù‚Ø§Ù„ Ø§Ø¨Ù† ÙƒØ«ÙŠØ± Ø±Ø­Ù…Ù‡ Ø§Ù„Ù„Ù‡...',
       validation: (rule) =>
         rule.warning('Original Arabic quote serves as untampered primary evidence for the agent'),
     }),
@@ -81,6 +83,7 @@ export const interpretiveClaimType = defineType({
       description: 'The primary textual, transmission, or linguistic proof relied upon by the scholar',
       type: 'text',
       rows: 3,
+      placeholder: 'e.g. Hadith of Umm Salamah; transmission consensus among Kufan reciters...',
       validation: (rule) =>
         rule.warning('Primary evidence gives the AI verifiable grounding to contrast against counter-evidence'),
     }),

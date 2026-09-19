@@ -40,14 +40,14 @@ export const tafsirSourceType = defineType({
       initialValue: 'athari',
       options: {
         list: [
-          { title: 'Athari', value: 'athari' },
-          { title: 'Fiqhi', value: 'juridical' },
-          { title: 'Linguistic', value: 'linguistic' },
-          { title: 'Rational', value: 'rational' },
+          { title: 'Traditional / Hadith-based (Athari)', value: 'athari' },
+          { title: 'Jurisprudential / Legal (Fiqhi)', value: 'juridical' },
+          { title: 'Linguistic / Rhetorical (Nahwi & Bayani)', value: 'linguistic' },
+          { title: 'Analytical / Rational (Dirayah)', value: 'rational' },
         ],
         layout: 'radio',
       },
-      validation: (rule) => rule.warning('Select methodology'),
+      validation: (rule) => rule.warning('Scholar methodology is recommended'),
     }),
     defineField({
       name: 'deathYearAH',
@@ -76,10 +76,17 @@ export const tafsirSourceType = defineType({
     },
     prepare({ bookTitleEnglish, bookTitleArabic, author, deathYearAH, methodology }) {
       const yearLabel = deathYearAH ? `d. ${deathYearAH} AH` : 'Era unknown';
+      const methodMap: Record<string, string> = {
+        athari: 'Athari',
+        juridical: 'Fiqhi',
+        linguistic: 'Linguistic',
+        rational: 'Dirayah',
+      };
+      const methodLabel = methodology && methodMap[methodology] ? ` â€¢ [${methodMap[methodology]}]` : '';
       const arabicLabel = bookTitleArabic ? ` (${bookTitleArabic})` : '';
       return {
         title: `${bookTitleEnglish || 'Untitled Source'}${arabicLabel}`,
-        subtitle: `${author || 'Unknown Scholar'} â€¢ ${yearLabel}`,
+        subtitle: `${author || 'Unknown Scholar'} â€¢ ${yearLabel}${methodLabel}`,
       };
     },
   },
