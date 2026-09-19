@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+:root {
+  --background: #090a0f;
+  --foreground: #f3f4f6;
+  --gold-primary: #d4af37;
+  --gold-glow: rgba(212, 175, 55, 0.2);
+  --surface-base: #0f1118;
+  --surface-card: #141722;
+  --surface-hover: #1c202e;
+  --border-subtle: #242938;
+  --border-accent: rgba(212, 175, 55, 0.3);
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-inter), system-ui, sans-serif;
+  overflow-x: hidden;
+}
+
+.font-arabic {
+  font-family: var(--font-amiri), "Scheherazade New", serif;
+}
+
+/* Custom scrollbar for research views */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0f1118;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #232736;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #373e54;
+}
