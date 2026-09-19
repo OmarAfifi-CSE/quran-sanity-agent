@@ -4,63 +4,78 @@ export const ayahType = defineType({
   name: 'ayah',
   title: 'ðŸ“œ Ayah (Verse)',
   type: 'document',
-  groups: [
-    { name: 'arabic', title: 'Arabic Scripture', default: true },
-    { name: 'translation', title: 'English Translation' },
-    { name: 'meta', title: 'Verse Metadata' },
-  ],
   fields: [
     defineField({
       name: 'surah',
       title: 'Parent Surah',
+      description: 'The chapter to which this verse belongs',
       type: 'reference',
       to: [{ type: 'surah' }],
-      group: 'meta',
-      validation: (rule) => rule.warning('Select the parent Surah'),
+      validation: (rule) => rule.warning('Select the parent Surah for this verse'),
     }),
     defineField({
       name: 'ayahNumber',
       title: 'Verse Number',
+      description: 'Sequential position within the chapter (1, 2, 3...)',
       type: 'number',
-      group: 'meta',
       initialValue: 1,
-      validation: (rule) => rule.min(1).integer(),
+      placeholder: 'e.g. 1',
+      validation: (rule) =>
+        rule.min(1).integer().warning('Verse number should be a positive integer'),
     }),
     defineField({
       name: 'textUthmani',
       title: 'Arabic Scripture',
+      description: 'Authentic Quranic text with full vocalization and diacritical marks',
       type: 'text',
       rows: 3,
-      group: 'arabic',
-      validation: (rule) => rule.warning('Arabic text is essential for grounding'),
+      placeholder: 'Ø¨ÙØ³Ù’Ù…Ù Ø§Ù„Ù„ÙŽÙ‘Ù‡Ù Ø§Ù„Ø±ÙŽÙ‘Ø­Ù’Ù…ÙŽÙ°Ù†Ù Ø§Ù„Ø±ÙŽÙ‘Ø­ÙÙŠÙ…Ù',
+      validation: (rule) =>
+        rule.warning('Arabic scripture text is essential for Quranic grounding'),
     }),
     defineField({
       name: 'textEnglishTranslation',
       title: 'English Translation',
+      description: 'Clear, authoritative translation (e.g. The Clear Quran / Sahih International)',
       type: 'text',
       rows: 3,
-      group: 'translation',
-      validation: (rule) => rule.warning('English translation is recommended'),
+      placeholder: 'e.g. In the name of Allah, the Entirely Merciful, the Especially Merciful.',
+      validation: (rule) =>
+        rule.warning('English translation enables international evaluation'),
     }),
     defineField({
       name: 'keywords',
       title: 'Thematic Keywords',
+      description: 'Theological concepts and indexed terms found in this verse',
       type: 'array',
       of: [{ type: 'string' }],
-      group: 'meta',
-      options: { layout: 'tags' },
+      options: {
+        layout: 'tags',
+      },
     }),
+  ],
+  orderings: [
+    {
+      title: 'Verse Number (1 âž” End)',
+      name: 'ayahNumberAsc',
+      by: [{ field: 'ayahNumber', direction: 'asc' }],
+    },
   ],
   preview: {
     select: {
       ayahNumber: 'ayahNumber',
       surahNameEnglish: 'surah.nameEnglish',
+      surahNameArabic: 'surah.nameArabic',
+      surahNumber: 'surah.number',
       textUthmani: 'textUthmani',
+      textEnglishTranslation: 'textEnglishTranslation',
     },
-    prepare({ ayahNumber, surahNameEnglish, textUthmani }) {
+    prepare({ ayahNumber, surahNameEnglish, surahNameArabic, surahNumber, textUthmani, textEnglishTranslation }) {
+      const surahLabel = surahNameEnglish || (surahNumber ? `Surah ${surahNumber}` : 'Surah');
+      const arabicLabel = surahNameArabic ? ` (${surahNameArabic})` : '';
       return {
-        title: `${surahNameEnglish ?? 'Surah'} [Verse ${ayahNumber ?? '?'}]`,
-        subtitle: textUthmani || 'No text',
+        title: `${surahLabel}${arabicLabel} [Verse ${ayahNumber ?? '?'}]`,
+        subtitle: textUthmani || textEnglishTranslation || 'Empty verse text',
       };
     },
   },
