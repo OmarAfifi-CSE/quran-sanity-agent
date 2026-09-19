@@ -1,0 +1,85 @@
+@import url('https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Cinzel:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Scheherazade+New:wght@400;600;700&display=swap');
+
+/* Base Studio typography */
+body, [data-ui="Root"] {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Luxury Headings */
+h1, h2, [data-testid="document-panel-header"] {
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  letter-spacing: -0.02em;
+}
+
+/* Quranic and Classical Arabic Fields - Warm Parchment Theme */
+textarea[id*="textUthmani"],
+textarea[id*="opinionArabic"],
+input[id*="nameArabic"],
+input[id*="targetSegmentArabic"],
+input[id*="bookTitleArabic"] {
+  font-family: 'Scheherazade New', 'Amiri', serif !important;
+  font-size: 1.35rem !important;
+  line-height: 2.2 !important;
+  direction: rtl !important;
+  text-align: right !important;
+  font-weight: 500 !important;
+  background-color: #FAF8F5 !important;
+  border-color: #E2D9CC !important;
+  color: #1E293B !important;
+  border-radius: 8px !important;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+}
+
+textarea[id*="textUthmani"]:focus,
+textarea[id*="opinionArabic"]:focus,
+input[id*="nameArabic"]:focus,
+input[id*="targetSegmentArabic"]:focus,
+input[id*="bookTitleArabic"]:focus {
+  border-color: #059669 !important;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15) !important;
+}
+
+/* Clean Input Fields */
+input, textarea {
+  border-radius: 8px !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+input:focus, textarea:focus {
+  border-color: #059669 !important;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15) !important;
+}
+
+/* Radio buttons luxury accent */
+input[type="radio"]:checked {
+  accent-color: #059669 !important;
+}
+
+/* Left Navigation Sidebar enhancements */
+[data-testid="pane-item"] {
+  border-radius: 6px !important;
+  margin: 1px 4px !important;
+  transition: background-color 0.12s ease !important;
+}
+
+[data-testid="pane-item"]:hover {
+  background-color: rgba(16, 185, 129, 0.08) !important;
+}
+
+/* Document List Card styling */
+[data-testid="pane-content"] [data-testid="document-list-item"] {
+  border-radius: 8px !important;
+  margin: 3px 6px !important;
+  transition: all 0.15s ease !important;
+}
+
+[data-testid="pane-content"] [data-testid="document-list-item"]:hover {
+  background-color: rgba(16, 185, 129, 0.06) !important;
+  transform: translateX(2px);
+}
+
+/* Top Navbar bottom accent */
+[data-testid="studio-navbar"] {
+  border-bottom: 2px solid rgba(16, 185, 129, 0.25) !important;
+}

@@ -2,6 +2,8 @@
 import { structureTool } from 'sanity/structure';
 import { schema } from './schemaTypes';
 import { deskStructure } from './deskStructure';
+import { StudioLogo } from './StudioLogo';
+import './customStudio.css';
 
 export default defineConfig({
   name: 'default',
@@ -14,6 +16,11 @@ export default defineConfig({
       structure: deskStructure,
     }),
   ],
+  studio: {
+    components: {
+      logo: StudioLogo,
+    },
+  },
   schema: {
     types: schema.types,
   },
