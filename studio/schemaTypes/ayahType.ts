@@ -1,9 +1,11 @@
-﻿import { defineField, defineType } from 'sanity';
+﻿import { DocumentTextIcon } from '@sanity/icons/DocumentText';
+import { defineField, defineType } from 'sanity';
 
 export const ayahType = defineType({
   name: 'ayah',
-  title: 'ðŸ“œ Ayah (Verse)',
+  title: 'Ayah (Verse)',
   type: 'document',
+  icon: DocumentTextIcon as any,
   fields: [
     defineField({
       name: 'surah',
@@ -25,7 +27,7 @@ export const ayahType = defineType({
     }),
     defineField({
       name: 'textUthmani',
-      title: 'Arabic Scripture',
+      title: 'Arabic Scripture (Uthmani Script)',
       description: 'Authentic Quranic text with full vocalization and diacritical marks',
       type: 'text',
       rows: 3,

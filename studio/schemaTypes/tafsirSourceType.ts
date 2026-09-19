@@ -1,58 +1,85 @@
-﻿import { defineField, defineType } from 'sanity';
+﻿import { UsersIcon } from '@sanity/icons/Users';
+import { defineField, defineType } from 'sanity';
 
 export const tafsirSourceType = defineType({
   name: 'tafsirSource',
-  title: 'ðŸ“š Tafsir Source',
+  title: 'Tafsir Source & Scholar',
   type: 'document',
+  icon: UsersIcon as any,
   fields: [
     defineField({
       name: 'bookTitleEnglish',
-      title: 'Work Title (English)',
+      title: 'Work Title (English / Transliteration)',
+      description: 'Standard scholarly title of the classical exegesis work',
       type: 'string',
-      validation: (rule) => rule.warning('Work title is recommended'),
+      placeholder: 'e.g. Tafsir al-Qur\'an al-Azim (Tafsir Ibn Kathir)',
+      validation: (rule) => rule.warning('Work title in English is recommended'),
     }),
     defineField({
       name: 'author',
       title: 'Author / Scholar',
+      description: 'Classical exegete and authority name',
       type: 'string',
+      placeholder: 'e.g. Ibn Kathir (Ø§Ø¨Ù† ÙƒØ«ÙŠØ±)',
       validation: (rule) => rule.warning('Author name is recommended'),
     }),
     defineField({
       name: 'bookTitleArabic',
-      title: 'Ø£Ù…Ù‡Ø§Øª Ø§Ù„ØªÙØ³ÙŠØ± (Arabic Title)',
+      title: 'Original Arabic Title',
+      description: 'Classical title as recorded in Arabic manuscripts',
       type: 'string',
-      validation: (rule) => rule.warning('Arabic title is recommended'),
+      placeholder: 'ØªÙØ³ÙŠØ± Ø§Ù„Ù‚Ø±Ø¢Ù† Ø§Ù„Ø¹Ø¸ÙŠÙ…',
+      validation: (rule) =>
+        rule.warning('Original Arabic title is recommended for scholarly citations'),
     }),
     defineField({
       name: 'methodology',
-      title: 'Methodology Type',
+      title: 'Hermeneutical Methodology',
+      description: 'The primary interpretive paradigm adhered to by the scholar',
       type: 'string',
+      initialValue: 'athari',
       options: {
         list: [
-          { title: 'Athari (Traditional)', value: 'athari' },
-          { title: 'Fiqhi (Legal)', value: 'juridical' },
+          { title: 'Athari', value: 'athari' },
+          { title: 'Fiqhi', value: 'juridical' },
           { title: 'Linguistic', value: 'linguistic' },
           { title: 'Rational', value: 'rational' },
         ],
         layout: 'radio',
       },
+      validation: (rule) => rule.warning('Select methodology'),
     }),
     defineField({
       name: 'deathYearAH',
-      title: 'Demise Year (AH)',
+      title: 'Demise Year (AH / Islamic Calendar)',
+      description: 'Year of demise in the Hijri calendar (used for chronological ordering)',
       type: 'number',
+      placeholder: 'e.g. 774',
+      validation: (rule) =>
+        rule.warning('Hijri demise year helps organize scholars chronologically'),
     }),
+  ],
+  orderings: [
+    {
+      title: 'Chronological (Demise Year AH)',
+      name: 'deathYearAsc',
+      by: [{ field: 'deathYearAH', direction: 'asc' }],
+    },
   ],
   preview: {
     select: {
       bookTitleEnglish: 'bookTitleEnglish',
+      bookTitleArabic: 'bookTitleArabic',
       author: 'author',
       deathYearAH: 'deathYearAH',
+      methodology: 'methodology',
     },
-    prepare({ bookTitleEnglish, author, deathYearAH }) {
+    prepare({ bookTitleEnglish, bookTitleArabic, author, deathYearAH, methodology }) {
+      const yearLabel = deathYearAH ? `d. ${deathYearAH} AH` : 'Era unknown';
+      const arabicLabel = bookTitleArabic ? ` (${bookTitleArabic})` : '';
       return {
-        title: bookTitleEnglish || 'Untitled Source',
-        subtitle: `${author || 'Unknown'} (d. ${deathYearAH ?? '?'} AH)`,
+        title: `${bookTitleEnglish || 'Untitled Source'}${arabicLabel}`,
+        subtitle: `${author || 'Unknown Scholar'} â€¢ ${yearLabel}`,
       };
     },
   },
