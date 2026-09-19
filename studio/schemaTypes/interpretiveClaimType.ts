@@ -1,4 +1,4 @@
-﻿import { SplitVerticalIcon } from '@sanity/icons/SplitVertical';
+import { SplitVerticalIcon } from '@sanity/icons/SplitVertical';
 import { defineField, defineType } from 'sanity';
 
 export const interpretiveClaimType = defineType({
@@ -37,7 +37,8 @@ export const interpretiveClaimType = defineType({
         ],
         layout: 'radio',
       },
-      validation: (rule) => rule.warning('Divergence classification recommended'),
+      validation: (rule) =>
+        rule.required().error('Divergence classification is required — every claim must be classified'),
     }),
     defineField({
       name: 'targetSegmentEnglish',
@@ -53,27 +54,27 @@ export const interpretiveClaimType = defineType({
       title: 'Focal Phrase (Arabic Scripture)',
       description: 'The exact Arabic clause or word from the Mus-haf',
       type: 'string',
-      placeholder: 'Ø¨ÙØ³Ù’Ù…Ù Ø§Ù„Ù„ÙŽÙ‘Ù‡Ù Ø§Ù„Ø±ÙŽÙ‘Ø­Ù’Ù…ÙŽÙ°Ù†Ù Ø§Ù„Ø±ÙŽÙ‘Ø­ÙÙŠÙ…Ù',
+      placeholder: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
       validation: (rule) =>
         rule.warning('Arabic focal phrase recommended for scripture cross-linking'),
     }),
     defineField({
       name: 'opinionEnglish',
       title: 'Scholarly Synthesis (English)',
-      description: 'Concise, rigorous English synthesis of the scholarâ€™s deductive conclusion for AI reasoning',
+      description: 'Concise, rigorous English synthesis of the scholar’s deductive conclusion for AI reasoning',
       type: 'text',
       rows: 4,
-      placeholder: 'e.g. Ibn Kathir argues that the Basmalah is an independent verse...',
+      placeholder: 'e.g. Ibn Kathir argues that the Basmalah is an independent verse at the start of every chapter (except At-Tawbah), but is not part of Al-Fatiha itself according to the Medina/Basra tradition...',
       validation: (rule) =>
         rule.warning('English explanation of the scholarly position is recommended'),
     }),
     defineField({
       name: 'opinionArabic',
       title: 'Primary Source Citation (Classical Arabic)',
-      description: 'Verbatim excerpt from the scholarâ€™s manuscript serving as untampered evidentiary ground truth',
+      description: 'Verbatim excerpt from the scholar’s manuscript serving as untampered evidentiary ground truth',
       type: 'text',
       rows: 4,
-      placeholder: 'Ù…Ø«Ø§Ù„: Ù‚Ø§Ù„ Ø§Ø¨Ù† ÙƒØ«ÙŠØ± Ø±Ø­Ù…Ù‡ Ø§Ù„Ù„Ù‡...',
+      placeholder: 'مثال: قال ابن كثير رحمه الله: وقد روى جماعة من أهل العلم أن البسملة آية مستقلة...',
       validation: (rule) =>
         rule.warning('Original Arabic quote serves as untampered primary evidence for the agent'),
     }),
@@ -83,7 +84,7 @@ export const interpretiveClaimType = defineType({
       description: 'The primary textual, transmission, or linguistic proof relied upon by the scholar',
       type: 'text',
       rows: 3,
-      placeholder: 'e.g. Hadith of Umm Salamah; transmission consensus among Kufan reciters...',
+      placeholder: 'e.g. Hadith of Umm Salamah; transmission consensus among Kufan reciters; morphological syntax...',
       validation: (rule) =>
         rule.warning('Primary evidence gives the AI verifiable grounding to contrast against counter-evidence'),
     }),
@@ -110,7 +111,7 @@ export const interpretiveClaimType = defineType({
         consensus: '[Consensus]',
       };
       const badge = (divergenceType && typeLabelMap[divergenceType]) || '[Unclassified]';
-      const verseLocation = ayahNumber ? ` â€¢ v. ${ayahNumber}` : '';
+      const verseLocation = ayahNumber ? ` • v. ${ayahNumber}` : '';
       const surahLabel = surahNameEnglish ? ` (${surahNameEnglish})` : '';
 
       return {

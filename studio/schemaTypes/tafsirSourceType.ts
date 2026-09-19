@@ -1,4 +1,4 @@
-﻿import { UsersIcon } from '@sanity/icons/Users';
+import { UsersIcon } from '@sanity/icons/Users';
 import { defineField, defineType } from 'sanity';
 
 export const tafsirSourceType = defineType({
@@ -20,7 +20,7 @@ export const tafsirSourceType = defineType({
       title: 'Author / Scholar',
       description: 'Classical exegete and authority name',
       type: 'string',
-      placeholder: 'e.g. Ibn Kathir (Ø§Ø¨Ù† ÙƒØ«ÙŠØ±)',
+      placeholder: 'e.g. Ibn Kathir (ابن كثير)',
       validation: (rule) => rule.warning('Author name is recommended'),
     }),
     defineField({
@@ -28,7 +28,7 @@ export const tafsirSourceType = defineType({
       title: 'Original Arabic Title',
       description: 'Classical title as recorded in Arabic manuscripts',
       type: 'string',
-      placeholder: 'ØªÙØ³ÙŠØ± Ø§Ù„Ù‚Ø±Ø¢Ù† Ø§Ù„Ø¹Ø¸ÙŠÙ…',
+      placeholder: 'تفسير القرآن العظيم',
       validation: (rule) =>
         rule.warning('Original Arabic title is recommended for scholarly citations'),
     }),
@@ -47,7 +47,7 @@ export const tafsirSourceType = defineType({
         ],
         layout: 'radio',
       },
-      validation: (rule) => rule.warning('Scholar methodology is recommended'),
+      validation: (rule) => rule.required().error('Scholar methodology is required'),
     }),
     defineField({
       name: 'deathYearAH',
@@ -82,11 +82,11 @@ export const tafsirSourceType = defineType({
         linguistic: 'Linguistic',
         rational: 'Dirayah',
       };
-      const methodLabel = methodology && methodMap[methodology] ? ` â€¢ [${methodMap[methodology]}]` : '';
+      const methodLabel = methodology && methodMap[methodology] ? ` • [${methodMap[methodology]}]` : '';
       const arabicLabel = bookTitleArabic ? ` (${bookTitleArabic})` : '';
       return {
         title: `${bookTitleEnglish || 'Untitled Source'}${arabicLabel}`,
-        subtitle: `${author || 'Unknown Scholar'} â€¢ ${yearLabel}${methodLabel}`,
+        subtitle: `${author || 'Unknown Scholar'} • ${yearLabel}${methodLabel}`,
       };
     },
   },

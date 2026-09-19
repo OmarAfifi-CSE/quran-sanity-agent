@@ -1,4 +1,4 @@
-﻿import { BookIcon } from '@sanity/icons/Book';
+import { BookIcon } from '@sanity/icons/Book';
 import { defineField, defineType } from 'sanity';
 
 export const surahType = defineType({
@@ -30,14 +30,14 @@ export const surahType = defineType({
       title: 'Arabic Name (Calligraphy)',
       description: 'Authentic title in Arabic as written in the Mus-haf',
       type: 'string',
-      placeholder: 'Ø§Ù„ÙØ§ØªØ­Ø©',
+      placeholder: 'الفاتحة',
       validation: (rule) =>
         rule.warning('Arabic name is recommended for authentic Mus-haf display'),
     }),
     defineField({
       name: 'revelationType',
       title: 'Revelation Period',
-      description: 'Historical chronology relative to the Prophetâ€™s migration (Hijrah)',
+      description: 'Historical chronology relative to the Prophet’s migration (Hijrah)',
       type: 'string',
       initialValue: 'makki',
       options: {
@@ -47,7 +47,7 @@ export const surahType = defineType({
         ],
         layout: 'radio',
       },
-      validation: (rule) => rule.warning('Select revelation period'),
+      validation: (rule) => rule.required().error('Revelation period is required'),
     }),
     defineField({
       name: 'totalAyahs',
@@ -60,7 +60,7 @@ export const surahType = defineType({
   ],
   orderings: [
     {
-      title: 'Surah Number (1 âž” 114)',
+      title: 'Surah Number (1 ➔ 114)',
       name: 'numberAsc',
       by: [{ field: 'number', direction: 'asc' }],
     },
@@ -75,7 +75,7 @@ export const surahType = defineType({
     },
     prepare({ number, nameArabic, nameEnglish, revelationType, totalAyahs }) {
       const typeLabel = revelationType === 'madani' ? 'Medinan' : 'Meccan';
-      const versesCount = totalAyahs ? ` â€¢ ${totalAyahs} verses` : '';
+      const versesCount = totalAyahs ? ` • ${totalAyahs} verses` : '';
       return {
         title: `${number ?? '?'}. ${nameEnglish ?? 'Untitled Surah'}`,
         subtitle: `${nameArabic ?? ''} [${typeLabel}${versesCount}]`,
