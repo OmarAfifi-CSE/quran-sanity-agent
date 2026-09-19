@@ -1,6 +1,6 @@
 import { createClient } from 'next-sanity';
 import { projectId, dataset, apiVersion } from '../sanity/env';
-import { InterpretiveClaim, Surah, Ayah } from './types';
+import { InterpretiveClaim, Surah, Ayah, TafsirSource } from './types';
 import seedData from '../sanity/seedData.json';
 
 const isLiveConfigured =
@@ -89,7 +89,7 @@ export async function getInterpretiveClaims(options?: {
   let claims = seedData.interpretiveClaims.map((c) => ({
     ...c,
     ayah: ayahsMap.get(c.ayah._ref) as unknown as Ayah,
-    source: sourcesMap.get(c.source._ref) as any,
+    source: sourcesMap.get(c.source._ref) as unknown as TafsirSource,
   })) as unknown as InterpretiveClaim[];
 
   if (options?.surahNumber) {

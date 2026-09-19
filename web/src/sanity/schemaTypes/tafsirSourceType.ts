@@ -1,3 +1,4 @@
+import type { ComponentType } from 'react';
 import { UsersIcon } from '@sanity/icons/Users';
 import { defineField, defineType } from 'sanity';
 
@@ -5,7 +6,7 @@ export const tafsirSourceType = defineType({
   name: 'tafsirSource',
   title: 'Tafsir Source & Scholar',
   type: 'document',
-  icon: UsersIcon as any,
+  icon: UsersIcon as unknown as ComponentType,
   fields: [
     defineField({
       name: 'bookTitleEnglish',

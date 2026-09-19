@@ -1,11 +1,12 @@
-﻿import { DocumentTextIcon } from '@sanity/icons/DocumentText';
+import type { ComponentType } from 'react';
+import { DocumentTextIcon } from '@sanity/icons/DocumentText';
 import { defineField, defineType } from 'sanity';
 
 export const ayahType = defineType({
   name: 'ayah',
   title: 'Ayah (Verse)',
   type: 'document',
-  icon: DocumentTextIcon as any,
+  icon: DocumentTextIcon as unknown as ComponentType,
   fields: [
     defineField({
       name: 'surah',

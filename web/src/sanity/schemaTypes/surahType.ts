@@ -1,3 +1,4 @@
+import type { ComponentType } from 'react';
 import { BookIcon } from '@sanity/icons/Book';
 import { defineField, defineType } from 'sanity';
 
@@ -5,7 +6,7 @@ export const surahType = defineType({
   name: 'surah',
   title: 'Surah (Chapter)',
   type: 'document',
-  icon: BookIcon as any,
+  icon: BookIcon as unknown as ComponentType,
   fields: [
     defineField({
       name: 'number',

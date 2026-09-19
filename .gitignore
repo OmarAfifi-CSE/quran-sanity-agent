@@ -5,6 +5,8 @@ skills-lock.json
 **/.sanity
 docs/
 **/docs/
+web/AGENTS.md
+web/CLAUDE.md
 
 # Dependencies (Root, studio, and web)
 node_modules/

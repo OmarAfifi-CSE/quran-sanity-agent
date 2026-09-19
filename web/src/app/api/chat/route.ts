@@ -82,10 +82,10 @@ Synthesize a structured scholarly response adhering strictly to the directives. 
       totalClaims: mcpResult.totalClaims,
       found: mcpResult.found,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('[API /api/chat Error]:', err);
     return NextResponse.json(
-      { error: err?.message || 'Internal Server Error' },
+      { error: err instanceof Error ? err.message : 'Internal Server Error' },
       { status: 500 }
     );
   }

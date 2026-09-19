@@ -73,14 +73,15 @@ Click one of the **Judge Presets** above or ask any question to inspect live gro
       if (data.citations && data.citations.length > 0) {
         setCitations(data.citations);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('[Chat Error]:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Network error';
       setMessages((prev) => [
         ...prev,
         {
           id: `err-${Date.now()}`,
           role: 'assistant',
-          content: `An error occurred while querying the Sanity Context MCP endpoint: ${err?.message || 'Network error'}`,
+          content: `An error occurred while querying the Sanity Context MCP endpoint: ${errorMessage}`,
           timestamp: 'Error',
         },
       ]);

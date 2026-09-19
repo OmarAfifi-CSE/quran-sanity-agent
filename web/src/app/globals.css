@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 :root {
   --background: #090a0f;
@@ -10,17 +11,19 @@
   --surface-hover: #1c202e;
   --border-subtle: #242938;
   --border-accent: rgba(212, 175, 55, 0.3);
+  --font-inter: 'Inter', 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-amiri: 'Amiri', 'Traditional Arabic', 'Scheherazade New', 'Noto Naskh Arabic', serif;
 }
 
 body {
   background-color: var(--background);
   color: var(--foreground);
-  font-family: var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-inter);
   overflow-x: hidden;
 }
 
 .font-arabic {
-  font-family: var(--font-amiri), "Scheherazade New", serif;
+  font-family: var(--font-amiri);
 }
 
 /* Custom scrollbar for research views */

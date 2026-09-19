@@ -1,4 +1,4 @@
-import { getInterpretiveClaims, getAllSurahs } from './sanity';
+import { getInterpretiveClaims } from './sanity';
 import { InterpretiveClaim, DivergenceGroup, GroundingSourceCitation } from './types';
 
 export interface SanityMcpQueryResult {

@@ -1,3 +1,4 @@
+import type { ComponentType } from 'react';
 import { SplitVerticalIcon } from '@sanity/icons/SplitVertical';
 import { defineField, defineType } from 'sanity';
 
@@ -5,7 +6,7 @@ export const interpretiveClaimType = defineType({
   name: 'interpretiveClaim',
   title: 'Interpretive Claim (Divergence / Consensus)',
   type: 'document',
-  icon: SplitVerticalIcon as any,
+  icon: SplitVerticalIcon as unknown as ComponentType,
   fields: [
     defineField({
       name: 'ayah',
