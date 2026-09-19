@@ -1,0 +1,57 @@
+# Custom / Agent & Docs ignores
+.agents
+skills-lock.json
+.sanity
+**/.sanity
+docs/
+**/docs/
+
+# Dependencies (Root, studio, and web)
+node_modules/
+**/node_modules/
+.pnp
+.pnp.*
+
+# Build & Output directories
+.next/
+**/.next/
+out/
+**/out/
+build/
+**/build/
+dist/
+**/dist/
+
+# Testing & Coverage
+coverage/
+**/coverage/
+
+# Environment files & Secrets
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+
+# Vercel
+.vercel
+**/.vercel
+
+# TypeScript & Cache
+*.tsbuildinfo
+**/*.tsbuildinfo
+next-env.d.ts
+**/next-env.d.ts
+
+# Operating System & IDE
+.DS_Store
+Thumbs.db
+*.pem
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*

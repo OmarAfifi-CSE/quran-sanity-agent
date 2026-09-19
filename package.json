@@ -1,0 +1,18 @@
+{
+  "name": "quran-sanity-agent-monorepo",
+  "version": "1.0.0",
+  "description": "Quran Sanity Agent Monorepo Workspace",
+  "private": true,
+  "workspaces": [
+    "studio",
+    "web"
+  ],
+  "scripts": {
+    "dev": "npm run dev --prefix web",
+    "dev:studio": "npm run dev --prefix studio",
+    "dev:web": "npm run dev --prefix web",
+    "build": "npm run build --prefix web",
+    "build:studio": "npm run build --prefix studio",
+    "test": "npm run test --prefix web"
+  }
+}
