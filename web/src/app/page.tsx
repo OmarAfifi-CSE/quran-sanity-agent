@@ -14,7 +14,7 @@ export default function Home() {
     {
       id: 'welcome-msg',
       role: 'assistant',
-      content: `### Welcome to Quran Sanity Agent | وكيل التفسير الموثق
+      content: `### Welcome to Quran Sanity Agent
 A research-grade exegesis intelligence powered strictly by **Sanity Content Lake** and the **Model Context Protocol (MCP)**.
 
 * **Zero-Hallucination Mandate:** The agent is programmatically constrained to synthesize only from grounded Sanity records.

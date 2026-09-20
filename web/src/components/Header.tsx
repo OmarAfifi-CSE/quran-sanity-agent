@@ -14,14 +14,9 @@ export const Header: React.FC = () => {
             <Sparkles className="w-4 h-4 text-[#d4af37]" />
           </div>
           <div className="flex items-center space-x-2.5">
-            <div className="flex items-baseline space-x-1.5">
-              <span className="text-sm font-bold text-white tracking-tight">
-                Quran Sanity Agent
-              </span>
-              <span className="hidden md:inline font-arabic text-xs text-[#d4af37]/80 font-medium">
-                (وكيل التفسير الموثق)
-              </span>
-            </div>
+            <h1 className="text-sm font-bold text-white tracking-tight">
+              Quran Sanity Agent
+            </h1>
             <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#d4af37]/15 text-[#d4af37] border border-[#d4af37]/30 font-medium">
               MCP Verified
             </span>

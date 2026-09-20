@@ -38,22 +38,21 @@ export const ChatStream: React.FC<ChatStreamProps> = ({
   };
 
   /**
-   * Helper to detect whether a text block starts or is primarily Arabic
+   * Helper to detect whether a text block starts primarily with Arabic
    */
-  const isArabicText = (text: string): boolean => {
-    const arabicMatch = text.match(/[\u0600-\u06FF]/g);
-    return Boolean(arabicMatch && arabicMatch.length > text.length * 0.2);
+  const startsWithArabic = (text: string): boolean => {
+    return /^[\s\W\d]*[\u0600-\u06FF]/.test(text);
   };
+
+  /**
+   * Detect current input direction
+   */
+  const isInputArabic = startsWithArabic(input);
 
   /**
    * Render inline tokens (bold, italics, inline code, and [Sanity: docId] pills)
    */
   const renderInlineTokens = (line: string, lineKey: string | number) => {
-    // Regex splits by:
-    // 1. [Sanity: docId]
-    // 2. **bold**
-    // 3. *italic*
-    // 4. `code`
     const tokenRegex = /(\[Sanity:\s*[a-zA-Z0-9_-]+\]|\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)/g;
     const parts = line.split(tokenRegex);
 
@@ -153,7 +152,7 @@ export const ChatStream: React.FC<ChatStreamProps> = ({
       if (trimmed.startsWith('* ') || trimmed.startsWith('- ')) {
         const text = trimmed.slice(2);
         return (
-          <div key={idx} className="flex items-start gap-2 my-1.5 pl-2">
+          <div key={idx} className="flex items-start gap-2 my-1.5 pl-1">
             <span className="text-[#d4af37] text-xs mt-0.5 shrink-0">•</span>
             <div className="flex-1 text-xs leading-relaxed text-zinc-200">
               {renderInlineTokens(text, `bullet-${idx}`)}
@@ -182,7 +181,7 @@ export const ChatStream: React.FC<ChatStreamProps> = ({
       <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
         {messages.map((m) => {
           const isUser = m.role === 'user';
-          const isArabic = isArabicText(m.content);
+          const isArabic = startsWithArabic(m.content);
 
           return (
             <div
@@ -200,10 +199,12 @@ export const ChatStream: React.FC<ChatStreamProps> = ({
               <div
                 dir={isArabic ? 'rtl' : 'ltr'}
                 className={`max-w-2xl rounded-2xl px-4 py-3 text-xs sm:text-[13px] leading-relaxed transition-all ${
+                  isArabic ? 'text-right font-arabic' : 'text-left font-sans'
+                } ${
                   isUser
                     ? 'bg-[#181d2c] text-white border border-[#2b354e] rounded-br-none shadow-md'
                     : 'bg-[#10131d] text-zinc-200 border border-[#1f2434] rounded-bl-none shadow-lg'
-                } ${isArabic ? 'font-arabic' : 'font-sans'}`}
+                }`}
               >
                 {renderRichMarkdown(m.content)}
 
@@ -241,25 +242,33 @@ export const ChatStream: React.FC<ChatStreamProps> = ({
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input Bar */}
+      {/* Input Bar with Dynamic RTL / LTR Direction */}
       <div className="p-3 sm:p-4 border-t border-[#1f2434] bg-[#0c0e15]/90 backdrop-blur-md">
         <form onSubmit={handleSubmit} className="relative flex items-center max-w-4xl mx-auto">
           <input
             type="text"
-            dir="auto"
+            dir={isInputArabic ? 'rtl' : 'ltr'}
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="اسأل بالعربية أو الإنجليزية (مثل: ما هو الخلاف في البسملة؟ / Compare Basmalah)..."
+            placeholder={
+              isInputArabic
+                ? 'اكتب سؤالك عن الآية أو المفسرين...'
+                : 'Ask about classical scholarly opinions, divergences, or verses (Arabic / English)...'
+            }
             disabled={isLoading}
-            className="w-full bg-[#121520] text-white placeholder-zinc-500 text-xs sm:text-sm rounded-xl pl-4 pr-12 py-2.5 sm:py-3 border border-[#23293a] focus:outline-none focus:border-[#d4af37]/60 transition-colors shadow-inner"
+            className={`w-full bg-[#121520] text-white placeholder-zinc-500 text-xs sm:text-sm rounded-xl py-2.5 sm:py-3 border border-[#23293a] focus:outline-none focus:border-[#d4af37]/60 transition-colors shadow-inner ${
+              isInputArabic ? 'pr-4 pl-12 text-right font-arabic' : 'pl-4 pr-12 text-left font-sans'
+            }`}
           />
           <button
             type="submit"
             disabled={!input.trim() || isLoading}
-            className="absolute right-2 p-1.5 sm:p-2 rounded-lg bg-[#d4af37] hover:bg-[#c4a02f] disabled:bg-zinc-800 text-black disabled:text-zinc-500 transition-colors shadow"
+            className={`absolute p-1.5 sm:p-2 rounded-lg bg-[#d4af37] hover:bg-[#c4a02f] disabled:bg-zinc-800 text-black disabled:text-zinc-500 transition-colors shadow ${
+              isInputArabic ? 'left-2' : 'right-2'
+            }`}
             title="Send query"
           >
-            <Send className="w-3.5 h-3.5" />
+            <Send className={`w-3.5 h-3.5 ${isInputArabic ? 'rotate-180' : ''}`} />
           </button>
         </form>
       </div>

@@ -15,9 +15,8 @@ export const JudgeQuickPrompts: React.FC<JudgeQuickPromptsProps> = ({
   const prompts = [
     {
       id: 'fatiha-basmalah',
-      titleEnglish: 'Basmalah in Al-Fatiha',
-      titleArabic: 'البسملة في الفاتحة',
-      badge: 'Contradictory / اختلاف تضاد',
+      title: 'Basmalah in Al-Fatiha',
+      badge: 'Contradictory Variance',
       badgeColor: 'border-rose-500/30 bg-rose-500/10 text-rose-300',
       icon: BookOpen,
       surahNumber: 1,
@@ -26,9 +25,8 @@ export const JudgeQuickPrompts: React.FC<JudgeQuickPromptsProps> = ({
     },
     {
       id: 'asr-scope',
-      titleEnglish: "'Al-Asr' Semantic Scope",
-      titleArabic: 'دلالة العصر',
-      badge: 'Complementary / اختلاف تنوع',
+      title: "'Al-Asr' Semantic Scope",
+      badge: 'Complementary Perspectives',
       badgeColor: 'border-amber-500/30 bg-amber-500/10 text-amber-300',
       icon: Compass,
       surahNumber: 103,
@@ -37,9 +35,8 @@ export const JudgeQuickPrompts: React.FC<JudgeQuickPromptsProps> = ({
     },
     {
       id: 'kursi-consensus',
-      titleEnglish: 'Ayah al-Kursi (Attributes)',
-      titleArabic: 'آية الكرسي',
-      badge: 'Consensus / إجماع',
+      title: 'Ayah al-Kursi Attributes',
+      badge: 'Scholarly Consensus',
       badgeColor: 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300',
       icon: Award,
       surahNumber: 2,
@@ -48,9 +45,8 @@ export const JudgeQuickPrompts: React.FC<JudgeQuickPromptsProps> = ({
     },
     {
       id: 'unindexed-test',
-      titleEnglish: 'Refusal Policy Test',
-      titleArabic: 'فحص الأمان',
-      badge: 'Anti-Hallucination / منع الهلوسة',
+      title: 'Anti-Hallucination Test',
+      badge: 'Strict Refusal',
       badgeColor: 'border-cyan-500/30 bg-cyan-500/10 text-cyan-300',
       icon: ShieldAlert,
       surahNumber: 18,
@@ -84,13 +80,10 @@ export const JudgeQuickPrompts: React.FC<JudgeQuickPromptsProps> = ({
               >
                 <Icon className="w-3.5 h-3.5 text-[#d4af37] shrink-0" />
                 <span className="text-xs font-medium text-zinc-200 group-hover:text-white transition-colors whitespace-nowrap">
-                  {p.titleEnglish}
-                </span>
-                <span className="text-[10px] font-arabic text-[#d4af37]/70 hidden sm:inline">
-                  ({p.titleArabic})
+                  {p.title}
                 </span>
                 <span
-                  className={`text-[9px] font-mono px-1.5 py-0.2 rounded-md border whitespace-nowrap ${p.badgeColor}`}
+                  className={`text-[9.5px] font-mono px-1.5 py-0.2 rounded-md border whitespace-nowrap ${p.badgeColor}`}
                 >
                   {p.badge}
                 </span>
