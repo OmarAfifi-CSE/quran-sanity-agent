@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- Background subtle glow -->
+  <rect width="64" height="64" rx="14" fill="#090a0f"/>
+  <rect x="1" y="1" width="62" height="62" rx="13" stroke="#d4af37" stroke-opacity="0.35" stroke-width="1.5"/>
+  
+  <!-- Islamic Eight-Pointed Star (Rub el Hizb inspired) -->
+  <g transform="translate(32, 32)">
+    <!-- Square 1 -->
+    <rect x="-16" y="-16" width="32" height="32" rx="4" fill="url(#goldGrad)" fill-opacity="0.15" stroke="url(#goldGrad)" stroke-width="2"/>
+    <!-- Square 2 (Rotated 45 deg) -->
+    <rect x="-16" y="-16" width="32" height="32" rx="4" transform="rotate(45)" fill="url(#goldGrad)" fill-opacity="0.15" stroke="url(#goldGrad)" stroke-width="2"/>
+    
+    <!-- Central Holy Book / Dialectic Core -->
+    <circle cx="0" cy="0" r="7" fill="url(#goldGrad)" fill-opacity="0.25" stroke="#d4af37" stroke-width="1.5"/>
+    <circle cx="0" cy="0" r="3" fill="#d4af37"/>
+  </g>
+  
+  <defs>
+    <linearGradient id="goldGrad" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#fceda2"/>
+      <stop offset="0.5" stop-color="#d4af37"/>
+      <stop offset="1" stop-color="#9a7b20"/>
+    </linearGradient>
+  </defs>
+</svg>

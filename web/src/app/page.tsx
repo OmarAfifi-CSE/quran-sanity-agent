@@ -14,11 +14,15 @@ export default function Home() {
     {
       id: 'welcome-msg',
       role: 'assistant',
-      content: `Welcome to the **Quran Sanity Agent** — a research-grade exegesis intelligence powered by **Sanity Context** and the **Model Context Protocol (MCP)**.
+      content: `### Welcome to Quran Sanity Agent | وكيل التفسير الموثق
+A research-grade exegesis intelligence powered strictly by **Sanity Content Lake** and the **Model Context Protocol (MCP)**.
 
-Classical exegesis is an archetype of knowledge where **hallucination is intolerable**. When classical authorities diverge (such as the status of the Basmalah in Al-Fatiha between Shafi'i and Maliki jurists), traditional vector search conflates their views. Here, our relational Sanity schema surfaces their claims **side by side with explicit source citations**.
+* **Zero-Hallucination Mandate:** The agent is programmatically constrained to synthesize only from grounded Sanity records.
+* **Side-by-Side Divergence:** Classical stances (*Ikhtilaf Tadadd* vs *Ikhtilaf Tanawwu*) are surfaced side-by-side with explicit primary evidence.
+* **Full Quran Knowledge Lake:** Complete 114 Surahs and 6,236 Ayahs indexed live in Sanity Cloud.
+* **Bilingual Support:** You can ask any question in **Arabic** or **English** (e.g. "ما هو الخلاف في البسملة؟" or "Compare opinions on Basmalah").
 
-Click one of the **Judge Presets** above or ask any question to inspect live grounded results.`,
+Click any **Evaluator Preset** above or type your inquiry below to begin.`,
       timestamp: 'Just now',
     },
   ]);
@@ -97,10 +101,10 @@ Click one of the **Judge Presets** above or ask any question to inspect live gro
 
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-[#090a0f]">
-      {/* 1. Top Global Navigation */}
+      {/* 1. Top Executive Navigation */}
       <Header />
 
-      {/* 2. One-Click Judge Presets */}
+      {/* 2. Compact One-Click Evaluator Presets Bar */}
       <JudgeQuickPrompts
         onSelectPrompt={handleSendMessage}
         isLoading={isLoading}
@@ -109,7 +113,7 @@ Click one of the **Judge Presets** above or ask any question to inspect live gro
       {/* 3. Main Split-Screen Workspace */}
       <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
         {/* Left Column: Conversational Stream */}
-        <div className="w-full lg:w-1/2 h-full flex flex-col border-r border-[#242938]">
+        <div className="w-full lg:w-1/2 h-full flex flex-col border-r border-[#1f2434]">
           <ChatStream
             messages={messages}
             isLoading={isLoading}
@@ -119,16 +123,16 @@ Click one of the **Judge Presets** above or ask any question to inspect live gro
         </div>
 
         {/* Right Column: Grounding & Divergence Workspace */}
-        <div className="w-full lg:w-1/2 h-full flex flex-col bg-[#0e1017]">
+        <div className="w-full lg:w-1/2 h-full flex flex-col bg-[#0c0e16]">
           {/* Right Pane Tab Navigation */}
-          <div className="px-4 py-2 bg-[#12141e] border-b border-[#242938] flex items-center justify-between">
+          <div className="px-4 py-2 bg-[#10131e] border-b border-[#1f2434] flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <button
                 onClick={() => setActiveRightTab('divergence')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1.5 transition-all ${
                   activeRightTab === 'divergence'
-                    ? 'bg-[#1e2334] text-[#d4af37] border border-[#d4af37]/30 shadow-sm'
-                    : 'text-zinc-400 hover:text-zinc-200 hover:bg-[#161a28]'
+                    ? 'bg-[#1a1f2e] text-[#d4af37] border border-[#d4af37]/35 shadow-sm'
+                    : 'text-zinc-400 hover:text-zinc-200 hover:bg-[#141824]'
                 }`}
               >
                 <Scale className="w-3.5 h-3.5" />
@@ -142,8 +146,8 @@ Click one of the **Judge Presets** above or ask any question to inspect live gro
                 onClick={() => setActiveRightTab('inspector')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1.5 transition-all ${
                   activeRightTab === 'inspector'
-                    ? 'bg-[#1e2334] text-emerald-400 border border-emerald-500/30 shadow-sm'
-                    : 'text-zinc-400 hover:text-zinc-200 hover:bg-[#161a28]'
+                    ? 'bg-[#1a1f2e] text-emerald-400 border border-emerald-500/35 shadow-sm'
+                    : 'text-zinc-400 hover:text-zinc-200 hover:bg-[#141824]'
                 }`}
               >
                 <FileJson className="w-3.5 h-3.5" />
@@ -158,7 +162,7 @@ Click one of the **Judge Presets** above or ask any question to inspect live gro
 
             <div className="hidden sm:flex items-center space-x-1.5 text-[11px] text-zinc-400">
               <Sparkles className="w-3 h-3 text-[#d4af37]" />
-              <span>Real-Time Model Context Protocol</span>
+              <span className="font-mono text-[10.5px]">Model Context Protocol</span>
             </div>
           </div>
 
@@ -168,6 +172,7 @@ Click one of the **Judge Presets** above or ask any question to inspect live gro
               <DivergenceMatrix
                 groups={divergenceGroups}
                 onSelectCitation={handleSelectCitation}
+                onSelectPreset={handleSendMessage}
               />
             ) : (
               <GroundingInspector
