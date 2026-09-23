@@ -1,0 +1,11 @@
+{
+  "resourceId": 20,
+  "title": "Saheeh International",
+  "author": "Saheeh International",
+  "provider": "Quran.com / Quran Foundation",
+  "metadataUrl": "https://api.quran.com/api/v4/resources/translations",
+  "verifiedAt": "2026-09-26T06:49:20.126Z",
+  "verification": "6236 local and live verse texts exactly match preserved resource 20 entries; no whitespace or wording normalization",
+  "printedEdition": "not established",
+  "rightsStatus": "source-specific permission not established; resource identity is not a redistribution license"
+}

@@ -11,15 +11,22 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "sanity": "^6.15.0",
+    "sanity": "^6.16.0",
     "styled-components": "^6.1.15"
   },
   "devDependencies": {
-    "@sanity/cli": "^8.12.0",
+    "@sanity/cli": "^8.13.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
     "typescript": "^5.7.3"
+  },
+  "overrides": {
+    "adm-zip": "0.6.1",
+    "js-yaml@^3.0.0": "3.15.2",
+    "js-yaml@^4.0.0": "4.3.2",
+    "smol-toml": "1.7.1",
+    "typeid-js": { "uuid": "11.1.1" }
   }
 }
