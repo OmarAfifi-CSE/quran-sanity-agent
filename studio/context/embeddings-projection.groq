@@ -1,0 +1,12 @@
+{
+  _type == "ayah" => {ayahNumber, textUthmani, textEnglishTranslation},
+  _type == "surah" => {number, nameArabic, nameEnglish},
+  _type == "sourceEdition" => {title, author, language, coverageNote},
+  _type == "libraryChunk" && verification == "imported_exact_anchor" => {
+    titleArabic, titleEnglish, edition, language,
+    "passages": entries[]{verseKey, text}
+  },
+  _type == "interpretiveClaim" && reviewStatus in ["source_checked", "reviewed"] && defined(primaryExcerpt) && defined(sourceUrl) && defined(reviewedBy) => {
+    opinionArabic, opinionEnglish, primaryExcerpt
+  }
+}

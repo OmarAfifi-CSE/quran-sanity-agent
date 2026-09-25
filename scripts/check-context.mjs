@@ -1,0 +1,18 @@
+import fs from 'node:fs/promises';
+process.loadEnvFile('web/.env.local');
+const endpoint=process.argv[2] || process.env.SANITY_CONTEXT_MCP_URL,token=process.env.SANITY_ORGANIZATION_TOKEN;
+if(!endpoint||!token)throw new Error('Missing Context configuration');
+const url=new URL(endpoint);
+if(url.protocol!=='https:'||url.hostname!=='api.sanity.io'||!url.pathname.startsWith('/v1/context/organizations/'))throw new Error('Invalid Context endpoint');
+const headers={Authorization:`Bearer ${token}`,'Content-Type':'application/json',Accept:'application/json, text/event-stream'};
+const response=await fetch(url,{method:'POST',headers,body:JSON.stringify({jsonrpc:'2.0',id:1,method:'tools/list'}),signal:AbortSignal.timeout(30000)});
+const body=await response.json();
+if(!response.ok||body.error)throw new Error(`Context tools failed: HTTP ${response.status}; RPC ${body.error?.code??'none'}`);
+url.pathname=url.pathname.replace(/\/$/,'')+'/initial-context';
+const initial=await fetch(url,{headers,signal:AbortSignal.timeout(30000)});
+if(!initial.ok)throw new Error(`Initial context HTTP ${initial.status}`);
+const content=await initial.text();
+const tools=body.result.tools.map(t=>t.name);
+const counts=[...content.matchAll(/\b(\d+) entries\./g)].map(m=>Number(m[1]));
+const report={at:new Date().toISOString(),connection:'verified',tools,mode:tools.includes('knowledge_base_read')?'knowledge_base':tools.includes('groq_query')?'groq':'unknown',knowledgeBaseEntryCounts:counts,readyForRetrieval:tools.includes('groq_query')||counts.some(n=>n>0),note:'Read-only tools/list and initial-context checks. This does not certify successful evidence retrieval.'};
+await fs.writeFile(process.argv[2] ? 'docs/audit/context-groq-connection.json' : 'docs/audit/context-connection.json',JSON.stringify(report,null,2));console.log(report);

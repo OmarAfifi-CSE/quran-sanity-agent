@@ -1,0 +1,25 @@
+*[
+  _type in ["surah", "sourceEdition", "tafsirSource"] ||
+  (_type == "libraryChunk" && verification == "imported_exact_anchor") ||
+  (_type == "interpretiveClaim" && reviewStatus in ["source_checked", "reviewed"] && defined(primaryExcerpt) && defined(sourceUrl) && defined(reviewedBy))
+]{
+  _id, _type,
+  _type == "surah" => {
+    number, nameArabic, nameEnglish, totalAyahs,
+    "verses": *[_type == "ayah" && surah._ref == ^._id] | order(ayahNumber asc){
+      _id, ayahNumber, textUthmani, textEdition, textSourceUrl
+    }
+  },
+  _type == "libraryChunk" => {
+    edition, titleArabic, titleEnglish, language, kind,
+    sourceLocator, reviewNote, verification,
+    "sourceEdition": sourceEdition->{_id,title,author,language,sourceUrl,coverageNote},
+    entries[]{_key,verseKey,text,sha256,sourceUrl,
+      "ayahDocumentId": ayah._ref,
+      "citationId": ^._id + "." + _key}
+  },
+  _type == "sourceEdition" => {title,author,language,sourceUrl,directAnchors,coverageNote},
+  _type == "tafsirSource" => {bookTitleArabic,bookTitleEnglish,author},
+  _type == "interpretiveClaim" => {opinionArabic,opinionEnglish,sourceUrl,primaryExcerpt,reviewStatus,sourceLocator,reviewedBy,reviewedAt,"source":source->{_id,author,bookTitleArabic,bookTitleEnglish},"ayahDocumentId":ayah._ref}
+}
+
