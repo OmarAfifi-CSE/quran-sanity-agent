@@ -1,0 +1,14 @@
+import {readFile,writeFile} from 'node:fs/promises';
+process.loadEnvFile('web/.env.local');
+const proof=JSON.parse(await readFile('docs/audit/translation-attribution.json','utf8'));
+if(!proof.passed||proof.localMismatches.length||proof.liveMismatches.length||Date.now()-Date.parse(proof.at)>3600000)throw new Error('Fresh exact comparison is required');
+const project=process.env.NEXT_PUBLIC_SANITY_PROJECT_ID,dataset=process.env.NEXT_PUBLIC_SANITY_DATASET||'production';
+const document={_id:'edition-quran-com-20',_type:'sourceEdition',resourceId:20,title:'Saheeh International',author:'Saheeh International',language:'english',slug:'en-sahih-international',reviewStatus:'source_checked',sourceUrl:proof.attribution.metadataUrl,directAnchors:6236,chunks:proof.chunks,missingDirectAnchors:[],coverageNote:`All 6236 local and live English ayah texts exactly match preserved Quran.com resource 20 entries. Verified ${proof.at}. Printed edition and reuse permissions remain separate and unestablished. Proof: docs/audit/translation-attribution.json.`};
+const response=await fetch(`https://${project}.api.sanity.io/v2025-01-01/data/mutate/${dataset}?returnDocuments=false`,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${process.env.SANITY_API_WRITE_TOKEN}`},body:JSON.stringify({mutations:[{createIfNotExists:document}]}),signal:AbortSignal.timeout(20000)});
+if(!response.ok)throw new Error(`Attribution mutation HTTP ${response.status}`);
+const result=await response.json();
+const catalog=JSON.parse(await readFile('web/data/edition-catalog.json','utf8'));
+if(!catalog.some(e=>e._id===document._id))catalog.push(document);
+await writeFile('web/data/edition-catalog.json',JSON.stringify(catalog));
+await writeFile('docs/audit/translation-attribution-publish.json',JSON.stringify({at:new Date().toISOString(),transactionId:result.transactionId,document,note:'One source metadata document; no scripture or translation wording changed'},null,2));
+console.log({documentId:document._id,transactionId:result.transactionId});

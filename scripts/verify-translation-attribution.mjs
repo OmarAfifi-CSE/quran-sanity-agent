@@ -1,0 +1,28 @@
+import {readFile,writeFile} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
+process.loadEnvFile('web/.env.local');
+const corpus=JSON.parse(await readFile('web/src/sanity/corpus.json','utf8'));
+const chunks=JSON.parse(await readFile('web/data/library.json','utf8')).filter(c=>c.edition==='translation-20');
+const rows=chunks.flatMap(c=>c.entries);
+const byKey=new Map(rows.map(e=>[e.verseKey,e]));
+if(byKey.size!==6236)throw new Error('Translation source incomplete');
+const metadataUrl='https://api.quran.com/api/v4/resources/translations';
+const response=await fetch(metadataUrl,{signal:AbortSignal.timeout(20000)});
+if(!response.ok)throw new Error('Metadata unavailable');
+const metadata=(await response.json()).translations.find(r=>r.id===20);
+if(metadata?.name!=='Saheeh International'||metadata.language_name!=='english')throw new Error('Unexpected resource metadata');
+const project=process.env.NEXT_PUBLIC_SANITY_PROJECT_ID;
+const dataset=process.env.NEXT_PUBLIC_SANITY_DATASET||'production';
+const query='*[_type=="ayah" && !(_id in path("drafts.**"))]{_id,textEnglishTranslation}';
+const liveResponse=await fetch(`https://${project}.api.sanity.io/v2025-01-01/data/query/${dataset}`,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${process.env.SANITY_API_READ_TOKEN}`},body:JSON.stringify({query}),signal:AbortSignal.timeout(20000)});
+if(!liveResponse.ok)throw new Error('Live corpus unavailable');
+const live=(await liveResponse.json()).result;
+function compare(ayahs){return ayahs.filter(a=>a.textEnglishTranslation!==byKey.get(a._id.replace('ayah-','').replace('-',':'))?.text).map(a=>a._id);}
+const localMismatches=compare(corpus.ayahs),liveMismatches=compare(live);
+const passed=corpus.ayahs.length===6236&&live.length===6236&&!localMismatches.length&&!liveMismatches.length;
+const at=new Date().toISOString();
+const attribution={resourceId:20,title:metadata.name,author:metadata.author_name,provider:'Quran.com / Quran Foundation',metadataUrl,verifiedAt:at,verification:'6236 local and live verse texts exactly match preserved resource 20 entries; no whitespace or wording normalization',printedEdition:'not established',rightsStatus:'source-specific permission not established; resource identity is not a redistribution license'};
+await writeFile('docs/audit/translation-attribution.json',JSON.stringify({at,passed,metadata,attribution,sourceEntries:rows.length,chunks:chunks.length,snapshotSha256:createHash('sha256').update(JSON.stringify(rows.map(r=>[r.verseKey,r.text,r.sha256]))).digest('hex'),localMismatches,liveMismatches},null,2));
+if(!passed)throw new Error('Translation comparison failed');
+await writeFile('web/data/translation-attribution.json',JSON.stringify(attribution,null,2));
+console.log({passed,local:corpus.ayahs.length,live:live.length,resourceId:20,title:metadata.name});
