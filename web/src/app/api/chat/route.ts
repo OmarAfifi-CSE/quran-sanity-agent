@@ -1,142 +1,252 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { querySanityContext } from '@/lib/mcp-bridge';
-import { ZERO_HALLUCINATION_SYSTEM_PROMPT } from '@/lib/agent-prompt';
-import { createGoogleGenerativeAI } from '@ai-sdk/google';
-import { generateText } from 'ai';
+import { NextRequest, NextResponse } from "next/server";
+import { getCorpus, isReviewed } from "@/lib/corpus";
+import { buildAnswer, matchesRequestedAuthor } from "@/lib/research";
+import { discoverContextEvidence } from "@/lib/context-mcp";
+import { retrieveLibrary, resolveContextLibraryCitations } from "@/lib/library";
+import { selectEvidence, thematicVerseKeys } from "@/lib/research";
+import { createHash } from 'node:crypto';
+import { RequestGuard } from '@/lib/request-guard';
+import { generateResearchNotes } from '@/lib/research-notes';
 
+const limits=globalThis as typeof globalThis & {quranRequestGuard?:RequestGuard};
+const positive=(name:string,fallback:number)=>{const value=Number(process.env[name]);return Number.isInteger(value)&&value>0&&value<=10000?value:fallback;};
+const guard=limits.quranRequestGuard??=new RequestGuard({perMinute:positive('QURAN_REQUESTS_PER_MINUTE',12),concurrent:positive('QURAN_MAX_CONCURRENT',4),hourly:positive('QURAN_REQUESTS_PER_HOUR',120)});
+
+export const runtime = "nodejs";
+export const maxDuration = 60;
 export async function POST(req: NextRequest) {
+  const origin=req.headers.get('origin');
+  // Next's internal URL can use localhost while the browser uses 127.0.0.1.
+  // Host is the browser's destination; reverse proxies should set PUBLIC_ORIGIN.
+  const destination=new URL(req.nextUrl.origin);
+  destination.host=req.headers.get('host')||destination.host;
+  if(req.headers.get('sec-fetch-site')==='cross-site'||(origin&&origin!==(process.env.QURAN_PUBLIC_ORIGIN||destination.origin)))
+    return NextResponse.json({error:'Open the research workspace to send a question.'},{status:403});
+  const started = Date.now();
+  const requestSignal = AbortSignal.any([
+    req.signal,
+    AbortSignal.timeout(45000),
+  ]);
+  let body: unknown;
   try {
-    const body = await req.json();
-    const { messages, surahNumber } = body;
-
-    const lastMessage =
-      Array.isArray(messages) && messages.length > 0
-        ? messages[messages.length - 1].content
-        : 'Compare classical interpretations of the Basmalah in Al-Fatiha';
-
-    // Detect if user's question is primarily Arabic
-    const isArabic = Boolean(lastMessage.match(/[\u0600-\u06FF]/));
-
-    // 1. Query Sanity Context MCP Bridge
-    const mcpResult = await querySanityContext({
-      query: lastMessage,
-      surahNumber: surahNumber ? Number(surahNumber) : undefined,
-    });
-
-    // 2. Synthesize with Gemini if API Key is available
-    const apiKey =
-      process.env.GOOGLE_GENERATIVE_AI_API_KEY ||
-      process.env.GEMINI_API_KEY ||
-      process.env.OPENAI_API_KEY;
-
-    let responseText = '';
-
-    if (apiKey) {
-      try {
-        const google = createGoogleGenerativeAI({ apiKey });
-        const languageInstruction = isArabic
-          ? 'Respond exclusively in eloquent Arabic (العربية الفصحى الأنيقة). Maintain strict orthography (place Tanween Fath on the consonant preceding the Alef, e.g. تمامًا، كاملًا، فوريًا).'
-          : 'Respond in clear scholarly English.';
-
-        const { text } = await generateText({
-          model: google('gemini-3.5-flash-lite'),
-          system: `${ZERO_HALLUCINATION_SYSTEM_PROMPT}\n\n${languageInstruction}`,
-          prompt: `
-User Question: "${lastMessage}"
-
-Sanity Knowledge Lake Records:
-${mcpResult.formattedContext}
-
-Directives:
-1. If the user asks a greeting, identity, or meta question (e.g. "مين انت", "من أنت", "مين اللي بيرد", "hello", "who are you"):
-   - Cordially introduce yourself as the **Quran Sanity Agent** powered by **Google Gemini** for intelligent reasoning and grounded in the **Sanity Knowledge Lake** (114 Surahs, 6,236 Ayahs, and Classical Exegesis Corpus).
-2. If the user asks ANY question about the Holy Quran (e.g. Surah order, first/last surah, longest/shortest surah, Makki/Madani revelation, verse counts, ayah meanings, themes, or classical tafsir):
-   - You MUST answer the question authoritatively, accurately, and comprehensively in the requested language (Arabic or English).
-   - Draw directly from the provided Sanity Context documents (Surahs, Ayahs, and Tafsir Claims) and explicitly tag referenced items with \`[Sanity: <document_id>]\` (e.g. \`[Sanity: surah-1]\`, \`[Sanity: ayah-1-1]\`, \`[Sanity: <claim_id>]\`).
-   - For interpretive divergences, present the classical stances side by side (Ikhtilaf Tadadd vs Ikhtilaf Tanawwu') with primary evidence from Ibn Kathir, Al-Qurtubi, Al-Razi, Al-Tabari, Al-Zamakhshari, or Al-Sa'di.
-3. Strict Authenticity:
-   - Only if a user asks for baseless modern speculation, fake hadiths, or external pseudo-scientific theories completely alien to Quranic and classical exegesis tradition, clarify that such matters are unindexed in the verified classical corpus.
-`,
-        });
-        responseText = text;
-      } catch (aiErr) {
-        console.warn('[AI SDK Generation Warning] Falling back to deterministic synthesis:', aiErr);
-      }
-    }
-
-    // 3. Fallback Deterministic Grounded Synthesis (Bilingual, 100% Zero-Crash & Instant)
-    if (!responseText) {
-      if (!mcpResult.found) {
-        const isMeta = /مين|انت|أنت|من أنت|من انت|ازيك|مرحبا|مرحباً|أهلا|اهلا|who are you|hello|hi|what do you do|answering|replying/i.test(lastMessage);
-        if (isMeta) {
-          responseText = isArabic
-            ? `أهلًا بك ومرحبًا! معك **«وكيل التفسير الموثق» (Quran Sanity Agent)**؛ وهو نظام ذكاء استدلالي متخصص في التفسير القرآني المقارن والتحقيق العلمي، يستند مباشرة إلى بحيرة بيانات **Sanity Knowledge Lake** لربط أقوال المفسرين المعتمدة (ابن كثير، الطبري، القرطبي، الرازي، الزمخشري، السعدي) بأدلتها الأصلية بلا أي اختلاق أو هلوسة.\n\nيمكنك سؤالي عن أي مسألة تفسيرية (مثل: الخلاف في البسملة، أو دلالة العصر، أو صفات آية الكرسي) وسأعرض لك مقارنة علمية دقيقة وموثقة.`
-            : `Hello and welcome! I am the **Quran Sanity Agent**, a research-grade exegesis intelligence directly grounded in the **Sanity Knowledge Lake** to surface verified classical scholarly interpretations with zero hallucination.\n\nYou can ask about classical divergences (such as the Basmalah in Al-Fatiha, the semantic scope of Al-Asr, or Divine Attributes in Ayah al-Kursi) to explore side-by-side scholarly evidence.`;
-        } else {
-          responseText = isArabic
-            ? 'لم أجد سجلات تفسيرية موثقة ومطابقة لهذا السؤال في بحيرة سينتي المعرفية؛ والتزامًا بنزاهة التفسير ومنع الهلوسة، أقتصر حصريًا على النصوص الموثقة في قاعدة البيانات.'
-            : 'I could not locate verified interpretive records for this specific inquiry within our indexed Sanity Knowledge Base. To preserve scriptural integrity and eliminate hallucination, I only report claims directly grounded in our structured content lake.';
-        }
-      } else {
-        if (isArabic) {
-          responseText = `### استخلاص استدلالي موثق من بحيرة المعرفة القرآنية (Sanity Context)\n\n`;
-          for (const group of mcpResult.divergenceGroups) {
-            const typeArabic =
-              group.divergenceType === 'contradictory'
-                ? 'اختلاف تضاد (آراء فقهية / نصية متباينة)'
-                : group.divergenceType === 'complementary'
-                ? 'اختلاف تنوع (تكامل وتعدد وجوه دلالية)'
-                : 'إجماع (اتفاق وتطابق أئمة التفسير)';
-
-            responseText += `#### المسألة: ${group.targetPhrase}\n`;
-            responseText += `**التصنيف الإبستمولوجي:** \`${group.divergenceType.toUpperCase()}\` (${typeArabic})\n\n`;
-
-            for (const claim of group.claims) {
-              const scholarName = claim.source?.author || 'أحد الأئمة';
-              const bookTitle = claim.source?.bookTitleArabic || claim.source?.bookTitleEnglish || 'المصدر';
-              const opinionText = claim.opinionArabic || claim.opinionEnglish;
-              const evidenceText = claim.evidenceEnglish;
-
-              responseText += `* **${scholarName}** (*${bookTitle}*، منهج ${claim.source?.methodology}):\n`;
-              responseText += `  "${opinionText}" [Sanity: \`${claim._id}\`]\n`;
-              responseText += `  *الدليل والاستدلال:* ${evidenceText}\n\n`;
-            }
-          }
-        } else {
-          responseText = `### Verified Sanity Exegetical Synthesis\n\n`;
-          for (const group of mcpResult.divergenceGroups) {
-            const typeEnglish =
-              group.divergenceType === 'contradictory'
-                ? 'Ikhtilaf Tadadd / Direct Variance'
-                : group.divergenceType === 'complementary'
-                ? "Ikhtilaf Tanawwu' / Complementary Perspectives"
-                : 'Ijma / Scholarly Consensus';
-
-            responseText += `#### Analysis: ${group.targetPhrase}\n`;
-            responseText += `**Classification:** \`${group.divergenceType.toUpperCase()}\` (${typeEnglish})\n\n`;
-
-            for (const claim of group.claims) {
-              responseText += `* **${claim.source?.author}** (*${claim.source?.bookTitleEnglish}*, ${claim.source?.methodology} methodology):\n`;
-              responseText += `  "${claim.opinionEnglish}" [Sanity: \`${claim._id}\`]\n`;
-              responseText += `  *Evidence:* ${claim.evidenceEnglish}\n\n`;
-            }
-          }
-        }
-      }
-    }
-
-    return NextResponse.json({
-      text: responseText,
-      divergenceGroups: mcpResult.divergenceGroups,
-      citations: mcpResult.citations,
-      totalClaims: mcpResult.totalClaims,
-      found: mcpResult.found,
-    });
-  } catch (err: unknown) {
-    console.error('[API /api/chat Error]:', err);
+    const raw = await req.text();
+    if (raw.length > 16000)
+      return NextResponse.json(
+        { error: "Request is too large." },
+        { status: 413 },
+      );
+    body = JSON.parse(raw);
+  } catch {
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : 'Internal Server Error' },
-      { status: 500 }
+      { error: "Send a valid JSON request." },
+      { status: 400 },
     );
+  }
+  if (!body || typeof body !== "object")
+    return NextResponse.json(
+      { error: "A question is required." },
+      { status: 400 },
+    );
+  const { question, messages, surahNumber } = body as Record<string, unknown>;
+  const latest = Array.isArray(messages) ? messages.at(-1) : undefined;
+  const text =
+    typeof question === "string"
+      ? question
+      : latest?.role === "user"
+        ? latest.content
+        : undefined;
+  if (typeof text !== "string" || !text.trim() || text.length > 2000)
+    return NextResponse.json(
+      { error: "Question must contain 1–2,000 characters." },
+      { status: 400 },
+    );
+  if (
+    surahNumber !== undefined &&
+    (typeof surahNumber !== "number" ||
+      !Number.isInteger(surahNumber) ||
+      surahNumber < 1 ||
+      surahNumber > 114)
+  )
+    return NextResponse.json(
+      { error: "Chapter must be a number from 1 to 114." },
+      { status: 400 },
+    );
+  const address=process.env.QURAN_TRUST_PROXY==='true'?req.headers.get('x-forwarded-for')?.split(',')[0].trim():'anonymous';
+  const ticket=guard.acquire(createHash('sha256').update(address||'anonymous').digest('hex'));
+  if(!ticket.ok)return NextResponse.json({error:'Research is busy. Please wait a moment and try again.',retryAfter:ticket.retryAfter},{status:429,headers:{'Retry-After':String(ticket.retryAfter),'Cache-Control':'no-store'}});
+  try {
+    const corpus = await getCorpus();
+    const answer = buildAnswer(
+      corpus,
+      text.trim(),
+      surahNumber as number | undefined,
+    );
+    const initialMissingText=answer.status==='not_found'?answer.text:null;
+    answer.contextStatus = "not_configured";
+    // These read-only retrieval paths are independent; share the request deadline.
+    const contextPending =
+      answer.status === "limited" || answer.status === "not_found"
+        ? discoverContextEvidence(text.trim(), corpus, requestSignal).catch(
+            (error) => {
+              answer.contextFailure=error?.name==='TimeoutError'||error?.name==='AbortError'?'timeout':/selection|JSON/.test(String(error?.message))?'invalid_selection':'dependency';
+              return null;
+            },
+          )
+        : null;
+    if (answer.status === "limited" || answer.status === "not_found") {
+      try {
+        const explicit = /[0-9٠-٩۰-۹]/.test(text);
+        const selection = selectEvidence(
+          corpus,
+          text,
+          surahNumber as number | undefined,
+        );
+        const keys = explicit
+          ? selection.ayahs.map((a) => `${a.surah.number}:${a.ayahNumber}`)
+          : [];
+        const library = await retrieveLibrary(
+          text,
+          keys,
+          requestSignal,
+          explicit
+            ? []
+            : [...new Set([...thematicVerseKeys(text),...selection.ayahs.map((a) => `${a.surah.number}:${a.ayahNumber}`)])],
+        );
+        answer.libraryStatus = "connected";
+        answer.libraryPlanner = library.planner;
+        if (library.citations.length) {
+          const ar = /[\u0600-\u06ff]/.test(text);
+          answer.text += ar
+            ? "\n\n**مقاطع من مكتبة البحث**\n\nهذه نتائج استرجاع من النسخة المستوردة وليست إجابة تفسيرية مكتملة أو مراجعة من متخصص. المراجع تشير إلى موضع النص في قاعدة المصدر؛ صلتها بالسؤال تحتاج قراءة السياق."
+            : "\n\n**Research library passages**\n\nRetrieved from the imported source copy, not a complete interpretation or specialist review. References identify the source record; relevance requires reading the context. Arabic excerpts are preserved without generated translation.";
+          for (const citation of library.citations) {
+            const verse = corpus.ayahs.find(
+              (a) =>
+                `${a.surah.number}:${a.ayahNumber}` ===
+                citation.rawJsonSnippet.verseKey,
+            );
+            if (!verse) continue;
+            citation.rawJsonSnippet.ayahDocumentId = verse._id;
+            citation.rawJsonSnippet.textUthmani = verse.textUthmani;
+            const passage = String(
+              citation.rawJsonSnippet.relevantExcerpt ||
+                citation.rawJsonSnippet.primaryExcerpt,
+            );
+            answer.text += `\n\n**${citation.title}** [Sanity: ${citation.documentId}]\n\n${passage.slice(0, 1400)}${passage.length > 1400 ? (ar ? "… (النص الكامل في المصدر)" : "… (full text in source)") : ""}`;
+            answer.citations.push(citation);
+          }
+          answer.found = true;
+          answer.status = "limited";
+        }
+      } catch {
+        answer.libraryStatus = "unavailable";
+      }
+    }
+    if (answer.status === "not_found" || answer.status === "limited") {
+      try {
+        const context = await contextPending;
+        if (!context) throw new Error("Context retrieval unavailable");
+        answer.contextStatus = context.status;
+        answer.contextTools = context.tools;
+        if('strategy' in context)answer.contextStrategy=context.strategy;
+        const contextPassages = await resolveContextLibraryCitations(
+          context.ids,
+          text,
+        );
+        for (const citation of contextPassages) {
+          if (
+            answer.citations.some((c) => c.documentId === citation.documentId)
+          )
+            continue;
+          const verse = corpus.ayahs.find(
+            (a) =>
+              `${a.surah.number}:${a.ayahNumber}` ===
+              citation.rawJsonSnippet.verseKey,
+          );
+          if (!verse) continue;
+          citation.rawJsonSnippet.ayahDocumentId = verse._id;
+          citation.rawJsonSnippet.textUthmani = verse.textUthmani;
+          citation.rawJsonSnippet.retrievedVia =
+            context.tools.includes("groq_query")
+              ? "Sanity Context GROQ"
+              : "Sanity Context Knowledge Base";
+          const passage = String(citation.rawJsonSnippet.primaryExcerpt);
+          const ar = /[\u0600-\u06ff]/.test(text);
+          answer.text += `\n\n**${citation.title} · Sanity Context** [Sanity: ${citation.documentId}]\n\n${passage.slice(0, 1400)}${passage.length > 1400 ? (ar ? "… (النص الكامل في المصدر)" : "… (full text in source)") : ""}`;
+          answer.citations.push(citation);
+          answer.found = true;
+          answer.status = "limited";
+        }
+        // Additional results remain explicitly labeled excerpts, never an asserted synthesis.
+        const docs = [
+          ...corpus.ayahs,
+          ...corpus.claims.filter(isReviewed),
+        ].filter(
+          (d) =>
+            context.ids.includes(d._id) &&
+            (d._type !== "interpretiveClaim" ||
+              matchesRequestedAuthor(text, d.source.author)) &&
+            !answer.citations.some((c) => c.documentId === d._id),
+        );
+        if (docs.length) {
+          const ar = /[\u0600-\u06ff]/.test(text);
+          answer.text += ar
+            ? "\n\nنصوص إضافية استرجعها Sanity Context؛ راجع مدى صلتها بالسؤال:"
+            : "\n\nAdditional passages retrieved through Sanity Context; inspect their relevance to the question:";
+          for (const doc of docs) {
+            const content =
+              doc._type === "ayah"
+                ? doc.textUthmani
+                : ar
+                  ? doc.opinionArabic
+                  : doc.opinionEnglish;
+            answer.text += `\n\n${content} [Sanity: ${doc._id}]`;
+            const title =
+              doc._type === "ayah"
+                ? `${doc.surah.nameEnglish || doc.surah.nameArabic || "Verse"} ${doc.surah.number}:${doc.ayahNumber}`
+                : `${doc.source.author} · ${doc.targetSegmentEnglish}`;
+            answer.citations.push({
+              documentId: doc._id,
+              documentType: doc._type,
+              title,
+              origin: corpus.origin,
+              rawJsonSnippet: doc as unknown as Record<string, unknown>,
+              sourceUrl:
+                doc._type === "interpretiveClaim" ? doc.sourceUrl : undefined,
+            });
+          }
+          answer.found = true;
+          answer.status = "limited";
+        }
+      } catch {
+        answer.contextStatus = "unavailable";
+      }
+    }
+    if(initialMissingText&&answer.found&&answer.citations.length){
+      const prelude=/[\u0600-\u06ff]/.test(text)
+        ?'استُرجعت مقاطع من المصادر مرتبطة بالسؤال. اقرأ النصوص وسياقها؛ هذه ليست مراجعة تفسيرية من متخصص.'
+        :'Source passages were retrieved for this question. Read their text and context; these are not a specialist-reviewed interpretation.';
+      answer.text=prelude+answer.text.slice(initialMissingText.length);
+    }
+    answer.notesStatus='not_needed';
+    if(answer.status==='limited'&&answer.citations.length){
+      const notes=await generateResearchNotes(text.trim(),answer.citations,requestSignal);
+      answer.notesStatus=notes?'available':'unavailable';
+      if(notes)answer.researchNotes=notes;
+    }
+    return NextResponse.json(
+      { ...answer, elapsedMs: Date.now() - started },
+      { headers: { "Cache-Control": "no-store" } },
+    );
+  } catch {
+    return NextResponse.json(
+      {
+        error:
+          "The configured Sanity dataset is unavailable. Please retry; no local records were substituted.",
+      },
+      { status: 503 },
+    );
+  } finally {
+    ticket.release();
   }
 }
