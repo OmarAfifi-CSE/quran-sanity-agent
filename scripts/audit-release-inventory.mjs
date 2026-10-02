@@ -1,0 +1,14 @@
+import {readFile,writeFile} from 'node:fs/promises';
+process.loadEnvFile('web/.env.local');
+const query='*[_type=="sourceEdition" && !(_id in path("drafts.**"))]{_id,title,author,language,sourceUrl,reviewStatus,directAnchors}';
+const url=`https://${process.env.NEXT_PUBLIC_SANITY_PROJECT_ID}.api.sanity.io/v2025-01-01/data/query/${process.env.NEXT_PUBLIC_SANITY_DATASET||'production'}`;
+const response=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${process.env.SANITY_API_READ_TOKEN}`},body:JSON.stringify({query}),signal:AbortSignal.timeout(20000)});
+if(!response.ok)throw new Error('Live inventory unavailable');
+const live=(await response.json()).result;
+const local=JSON.parse(await readFile('web/data/edition-catalog.json','utf8'));
+const report={at:new Date().toISOString(),liveCount:live.length,localCount:local.length,localMissingIds:live.filter(e=>!local.some(l=>l._id===e._id)).map(e=>e._id),live};
+await writeFile('docs/audit/edition-inventory.json',JSON.stringify(report,null,2));
+const snapshots=JSON.parse(await readFile('web/data/library.json','utf8'));
+const legacy=[...new Set(snapshots.map(c=>c.edition))].map(edition=>{const rows=snapshots.filter(c=>c.edition===edition);return{_id:`legacy-${edition}`,title:rows[0].titleEnglish,author:edition==='translation-20'?'Saheeh International (exact comparison verified)':'not established from preserved snapshot',language:rows[0].language,sourceAsset:rows[0].sourceAsset,directAnchors:rows.reduce((n,c)=>n+c.entries.length,0),reviewStatus:'snapshot only; additional identity checks needed'};});
+await writeFile('docs/review/source-rights-register.json',JSON.stringify({at:report.at,scope:'All22 live sourceEdition records and4 legacy snapshot families. Resource20 appears in metadata and an overlapping legacy copy; not26 independent works. Curated excerpt permissions also require review.',editions:[...live,...legacy].map(e=>({...e,permissionStatus:'not established',requiredConfirmation:['public display','persistent storage and refresh','Sanity indexing and embeddings','AI processing','demo excerpts','publisher edition rights']}))},null,2));
+console.log({live:live.length,local:local.length,localMissingIds:report.localMissingIds});
