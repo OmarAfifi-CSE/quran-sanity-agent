@@ -1,0 +1,11 @@
+import {existsSync,readFileSync} from 'node:fs';
+import {spawnSync} from 'node:child_process';
+console.log('Install directory:',process.cwd());
+console.log('Release manifests:',{package:existsSync('package.json'),lock:existsSync('package-lock.json')});
+if(!existsSync('package-lock.json'))throw new Error('Release lockfile missing from build directory');
+const lock=JSON.parse(readFileSync('package-lock.json','utf8'));
+console.log('Release lock:',{version:lock.lockfileVersion,packages:Object.keys(lock.packages||{}).length});
+const brokenLinks=Object.entries(lock.packages||{}).filter(([,entry])=>entry.link&&!lock.packages[entry.resolved]);
+if(brokenLinks.length)throw new Error('Release lock contains unresolved local links');
+const result=spawnSync('npm',['ci','--workspaces=false'],{stdio:'inherit',shell:process.platform==='win32'});
+process.exit(result.status??1);

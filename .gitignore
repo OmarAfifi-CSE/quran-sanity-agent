@@ -3,8 +3,6 @@
 skills-lock.json
 .sanity
 **/.sanity
-docs/
-**/docs/
 web/AGENTS.md
 web/CLAUDE.md
 
@@ -57,3 +55,8 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+docs/audit/live-snapshot.json
+data/staging/
+
+# Local continuity documentation and audit receipts
+/docs/

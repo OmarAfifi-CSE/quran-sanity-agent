@@ -1,0 +1,14 @@
+import {readFile,writeFile} from 'node:fs/promises';
+const file='web/package-lock.json';
+const manifest=JSON.parse(await readFile('web/package.json','utf8'));
+const lock=JSON.parse(await readFile(file,'utf8'));
+const name='quran-sanity-agent-monorepo';
+if(manifest.dependencies?.[name]||manifest.devDependencies?.[name])throw new Error('Do not remove a declared dependency');
+const link=lock.packages[`node_modules/${name}`];
+if(!link?.link||link.resolved!=='../../..')throw new Error('Unexpected lock state');
+delete lock.packages[''].dependencies[name];
+delete lock.packages[`node_modules/${name}`];
+delete lock.packages[link.resolved];
+await writeFile(file,JSON.stringify(lock,null,2)+'\n');
+await writeFile('docs/audit/release-lock-repair.json',JSON.stringify({at:new Date().toISOString(),cause:'Undeclared parent-directory file dependency left in web lockfile. Local parent exists, clean deployment cannot resolve it; npm loadVirtual throws extraneous TypeError.',removed:[name,link.resolved],declaredDependenciesChanged:false,packageVersionsChanged:false},null,2));
+console.log({removedUndeclaredLocalLink:name,packages:Object.keys(lock.packages).length});

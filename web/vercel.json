@@ -1,0 +1,7 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "installCommand": "node install-release.mjs",
+  "buildCommand": "npm run build",
+  "fluid": true
+}

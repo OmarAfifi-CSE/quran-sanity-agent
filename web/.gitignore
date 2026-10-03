@@ -1,0 +1,5 @@
+.vercel
+.env*
+
+# Commit the blank setup template only
+!.env.example

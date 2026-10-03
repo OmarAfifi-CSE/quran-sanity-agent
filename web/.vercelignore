@@ -1,0 +1,9 @@
+.env*
+!.env.example
+node_modules
+.next
+tests
+scripts
+*.tsbuildinfo
+AGENTS.md
+CLAUDE.md
